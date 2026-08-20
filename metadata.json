@@ -1,0 +1,6 @@
+{
+  "name": "아이디어노트 - 스마트 음성 메모 & 태그",
+  "description": "갑자기 떠오르는 번뜩이는 아이디어를 음성과 텍스트로 빠르게 메모하고, 태그와 카테고리로 체계적으로 분류 및 검색하는 스마트 아이디어 앱",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

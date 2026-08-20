@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.9"
+        android:scaleY="0.9"
+        android:pivotX="54"
+        android:pivotY="54">
+        <!-- Bulb Glow Body -->
+        <path
+            android:pathData="M54,26 C43.5,26 35,34.5 35,45 C35,51.8 38.6,57.7 44,61 L44,66 C44,67.1 44.9,68 46,68 L62,68 C63.1,68 64,67.1 64,66 L64,61 C69.4,57.7 73,51.8 73,45 C73,34.5 64.5,26 54,26 Z"
+            android:fillColor="#FFD166" />
+
+        <!-- Bulb Inner Highlight -->
+        <path
+            android:pathData="M54,30 C45.7,30 39,36.7 39,45 C39,50.2 41.7,54.8 45.8,57.5 C46.7,58.1 47.3,59.1 47.3,60.2 L47.3,64 L60.7,64 L60.7,60.2 C60.7,59.1 61.3,58.1 62.2,57.5 C66.3,54.8 69,50.2 69,45 C69,36.7 62.3,30 54,30 Z"
+            android:fillColor="#FFE699" />
+
+        <!-- Filament Idea Icon (Spark/Lightning inside) -->
+        <path
+            android:pathData="M55,34 L47,46 L53,46 L51,56 L61,44 L55,44 Z"
+            android:fillColor="#D97706" />
+
+        <!-- Bulb Base Screw Threads -->
+        <path
+            android:pathData="M46,71 L62,71 C62.6,71 63,71.4 63,72 C63,72.6 62.6,73 62,73 L46,73 C45.4,73 45,72.6 45,72 C45,71.4 45.4,71 46,71 Z"
+            android:fillColor="#E2E8F0" />
+        <path
+            android:pathData="M48,75 L60,75 C60.6,75 61,75.4 61,76 C61,76.6 60.6,77 60,77 L48,77 C47.4,77 47,76.6 47,76 C47,75.4 47.4,75 48,75 Z"
+            android:fillColor="#CBD5E1" />
+        <path
+            android:pathData="M51,79 C51,80.7 52.3,82 54,82 C55.7,82 57,80.7 57,79 L51,79 Z"
+            android:fillColor="#94A3B8" />
+
+        <!-- Creative Sparks around bulb -->
+        <!-- Top Spark -->
+        <path
+            android:pathData="M54,16 L55.5,21 L60.5,22.5 L55.5,24 L54,29 L52.5,24 L47.5,22.5 L52.5,21 Z"
+            android:fillColor="#FFFFFF" />
+        <!-- Top-Right Spark -->
+        <path
+            android:pathData="M76,28 L77,32 L81,33 L77,34 L76,38 L75,34 L71,33 L75,32 Z"
+            android:fillColor="#FDE047" />
+        <!-- Top-Left Spark -->
+        <path
+            android:pathData="M32,28 L33,32 L37,33 L33,34 L32,38 L31,34 L27,33 L31,32 Z"
+            android:fillColor="#FDE047" />
+        <!-- Small Voice/Sound Wave Arc Right -->
+        <path
+            android:pathData="M78,45 C78,40 76,36 73,33"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="2.5"
+            android:strokeLineCap="round" />
+        <path
+            android:pathData="M84,45 C84,37 81,30 76,26"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="2"
+            android:strokeLineCap="round" />
+    </group>
+</vector>
