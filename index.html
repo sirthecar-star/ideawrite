@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>아이디어노트 - Idea Memo Web & PC</title>
+  <meta name="description" content="스마트한 아이디어 기록, 음성 인식(STT), 별점 중요도, AI 브레인스토밍을 지원하는 아이디어 메모 웹 서비스">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💡</text></svg>">
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand" onclick="location.reload()">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 18h6"></path>
+            <path d="M10 22h4"></path>
+            <path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"></path>
+          </svg>
+        </div>
+        <span>아이디어노트</span>
+      </div>
+
+      <div class="header-search">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="아이디어, 태그, 카테고리 검색..." autocomplete="off">
+      </div>
+
+      <div class="header-actions">
+        <button class="btn btn-secondary" id="exportMdBtn" title="마크다운으로 백업/내보내기">
+          <span>📄 내보내기</span>
+        </button>
+        <button class="btn btn-icon" id="viewModeBtn" title="그리드/리스트 뷰 전환">
+          <span>🔲</span>
+        </button>
+        <button class="btn btn-icon" id="themeToggleBtn" title="다크 모드 전환">
+          <!-- dynamically populated -->
+        </button>
+        <button class="btn btn-primary" onclick="openNewIdeaModal()">
+          <span>+ 새 아이디어</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- App Main Content -->
+  <main class="app-body">
+
+    <!-- Quick Input Card -->
+    <div class="quick-input-card" id="quickInputCard">
+      <div class="quick-input-top">
+        <button class="btn-icon mic-btn" title="음성 인식 타이핑(STT)" onclick="toggleVoiceRecognition('quick')">
+          🎤
+        </button>
+        <input type="text" id="quickTitle" placeholder="번뜩이는 아이디어가 떠올랐나요? 빠르게 적어보세요..." autocomplete="off">
+      </div>
+
+      <div class="quick-input-details">
+        <textarea id="quickContent" placeholder="상세한 내용이나 메모를 입력하세요..."></textarea>
+        
+        <div class="quick-input-toolbar">
+          <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+            <select id="quickCategory" class="sort-select">
+              <option value="일상">일상</option>
+              <option value="업무">업무</option>
+              <option value="창작">창작</option>
+              <option value="기술">기술</option>
+              <option value="사업">사업</option>
+              <option value="공부">공부</option>
+              <option value="기타">기타</option>
+            </select>
+            
+            <select id="quickImportance" class="sort-select" title="중요도">
+              <option value="5">중요도: ★★★★★</option>
+              <option value="4">중요도: ★★★★☆</option>
+              <option value="3" selected>중요도: ★★★☆☆</option>
+              <option value="2">중요도: ★★☆☆☆</option>
+              <option value="1">중요도: ★☆☆☆☆</option>
+            </select>
+          </div>
+
+          <div style="display:flex; gap:0.5rem;">
+            <button class="btn btn-secondary" id="quickCancelBtn">취소</button>
+            <button class="btn btn-primary" id="quickSaveBtn">저장하기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls Bar (Tabs, Categories, Sort) -->
+    <div class="controls-bar">
+      <!-- Tabs -->
+      <div class="tab-nav">
+        <button class="tab-btn active" data-tab="all">💡 전체 아이디어</button>
+        <button class="tab-btn" data-tab="starred">⭐ 중요 (별 4개 이상)</button>
+        <button class="tab-btn" data-tab="pinned">📌 상단 고정</button>
+        <button class="tab-btn" data-tab="voice">🎙️ 음성 메모</button>
+      </div>
+
+      <!-- Categories & Sort -->
+      <div class="filters-row">
+        <div class="category-chips">
+          <button class="chip active" data-category="all">전체</button>
+          <button class="chip" data-category="일상">일상</button>
+          <button class="chip" data-category="업무">업무</button>
+          <button class="chip" data-category="창작">창작</button>
+          <button class="chip" data-category="기술">기술</button>
+          <button class="chip" data-category="사업">사업</button>
+          <button class="chip" data-category="공부">공부</button>
+          <button class="chip" data-category="기타">기타</button>
+        </div>
+
+        <div class="view-sort-group">
+          <select id="sortSelect" class="sort-select">
+            <option value="newest">🕒 최신순</option>
+            <option value="importance">⭐ 중요도 높은순</option>
+            <option value="oldest">⏳ 오래된순</option>
+            <option value="title">🔤 제목 가나다순</option>
+          </select>
+          <button class="btn btn-secondary" id="exportJsonBtn" title="JSON 백업 파일 다운로드" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;">
+            💾 백업
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ideas Grid -->
+    <div class="ideas-container" id="ideasContainer">
+      <!-- Dynamically filled by JavaScript -->
+    </div>
+
+  </main>
+
+  <!-- Edit/Create Modal Dialog -->
+  <div class="modal-backdrop" id="ideaModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalHeaderTitle">새 아이디어 작성</h3>
+        <button class="btn-icon" id="closeModalBtn" style="border:none;">✕</button>
+      </div>
+
+      <form id="ideaForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="modalTitle">아이디어 제목</label>
+            <div style="display:flex; gap:0.5rem;">
+              <input type="text" id="modalTitle" class="form-input" style="flex:1;" placeholder="아이디어 제목을 입력하세요..." required>
+              <button type="button" class="btn btn-secondary mic-btn" title="음성 인식(STT)" onclick="toggleVoiceRecognition('modal')">
+                🎤 음성 타이핑
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <label for="modalContent">상세 내용 및 기획</label>
+              <button type="button" class="btn btn-secondary" id="modalAiBtn" style="padding: 3px 8px; font-size:0.8rem; color:var(--primary);">
+                ✨ AI 브레인스토밍
+              </button>
+            </div>
+            <textarea id="modalContent" class="form-textarea" placeholder="아이디어의 배경, 목표, 구체적 실행 방안 등을 작성하세요..."></textarea>
+          </div>
+
+          <!-- AI result container -->
+          <div id="modalAiResult" style="display:none;"></div>
+
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+            <div class="form-group">
+              <label for="modalCategory">카테고리</label>
+              <select id="modalCategory" class="form-select">
+                <option value="일상">일상</option>
+                <option value="업무">업무</option>
+                <option value="창작">창작</option>
+                <option value="기술">기술</option>
+                <option value="사업">사업</option>
+                <option value="공부">공부</option>
+                <option value="기타">기타</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>중요도 별점</label>
+              <div class="star-rating-input" id="modalRatingStars">
+                <span class="star active" data-val="1">★</span>
+                <span class="star active" data-val="2">★</span>
+                <span class="star active" data-val="3">★</span>
+                <span class="star" data-val="4">★</span>
+                <span class="star" data-val="5">★</span>
+              </div>
+              <input type="hidden" id="modalImportance" value="3">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="modalTags">태그 (쉼표로 구분)</label>
+            <input type="text" id="modalTags" class="form-input" placeholder="예: 기획, 모바일앱, 2026트렌드">
+          </div>
+
+          <div class="form-group">
+            <label>🎙️ 음성 녹음 첨부</label>
+            <div style="display:flex; align-items:center; gap:0.75rem;">
+              <button type="button" class="btn btn-secondary" id="recordAudioBtn">
+                🎙️ 음성 녹음
+              </button>
+              <span style="font-size:0.8rem; color:var(--text-muted);">마이크로 직접 목소리를 녹음하여 저장합니다.</span>
+            </div>
+            <div id="modalAudioContainer" style="display:none; margin-top:0.5rem;"></div>
+          </div>
+
+          <div class="form-group" style="flex-direction:row; align-items:center; gap:0.5rem;">
+            <input type="checkbox" id="modalPinned" style="width:18px; height:18px;">
+            <label for="modalPinned" style="margin:0; cursor:pointer;">📌 목록 상단에 고정하기</label>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="cancelModalBtn">취소</button>
+          <button type="submit" class="btn btn-primary" id="saveModalBtn">저장하기</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
