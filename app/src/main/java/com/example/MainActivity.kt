@@ -1,140 +1,120 @@
 package com.example
 
+import android.annotation.SuppressLint
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
+import android.view.View
+import android.webkit.ConsoleMessage
+import android.webkit.PermissionRequest
+import android.webkit.WebChromeClient
+import android.webkit.WebSettings
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.example.speech.VoiceState
-import com.example.ui.components.TagManageDialog
-import com.example.ui.components.VoiceRecordDialog
-import com.example.ui.screens.HomeScreen
-import com.example.ui.screens.IdeaEditScreen
-import com.example.ui.theme.MyApplicationTheme
-import com.example.ui.viewmodel.IdeaViewModel
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 
 class MainActivity : ComponentActivity() {
-
-    private val viewModel: IdeaViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // Request audio permission for voice recording
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
+            != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(android.Manifest.permission.RECORD_AUDIO),
+                101
+            )
+        }
+
         setContent {
-            MyApplicationTheme {
-                MainApp(viewModel = viewModel)
-            }
-        }
-    }
-}
-
-@Composable
-fun MainApp(viewModel: IdeaViewModel) {
-    val isEditSheetOpen by viewModel.isEditSheetOpen.collectAsState()
-    val editingIdea by viewModel.editingIdea.collectAsState()
-    val isVoiceDialogOpen by viewModel.isVoiceDialogOpen.collectAsState()
-    val isTagManageOpen by viewModel.isTagManageOpen.collectAsState()
-    val voiceState by viewModel.voiceState.collectAsState()
-    val allTags by viewModel.allTags.collectAsState()
-    val selectedTags by viewModel.selectedTags.collectAsState()
-
-    val snackbarHostState = remember { SnackbarHostState() }
-
-    LaunchedEffect(Unit) {
-        viewModel.toastMessage.collect { message ->
-            snackbarHostState.showSnackbar(message)
-        }
-    }
-
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            AnimatedContent(
-                targetState = isEditSheetOpen,
-                transitionSpec = { fadeIn() togetherWith fadeOut() },
-                label = "screen_transition"
-            ) { editOpen ->
-                if (editOpen) {
-                    IdeaEditScreen(
-                        idea = editingIdea,
-                        voiceRecognitionManager = viewModel.voiceRecognitionManager,
-                        onSave = { title, content, category, tags, colorHex, importance, isPinned, isFavorite, id ->
-                            viewModel.saveIdea(
-                                title = title,
-                                content = content,
-                                category = category,
-                                tags = tags,
-                                colorHex = colorHex,
-                                importance = importance,
-                                isPinned = isPinned,
-                                isFavorite = isFavorite,
-                                id = id
-                            )
-                        },
-                        onBack = { viewModel.closeEditIdeaSheet() }
-                    )
-                } else {
-                    HomeScreen(
-                        viewModel = viewModel,
-                        modifier = Modifier.fillMaxSize()
-                    )
+            MaterialTheme {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .systemBarsPadding()
+                ) {
+                    WebAppView()
                 }
             }
-
-            // Voice Record Modal Dialog
-            if (isVoiceDialogOpen) {
-                VoiceRecordDialog(
-                    voiceState = voiceState,
-                    onStartListening = {
-                        viewModel.voiceRecognitionManager.reset()
-                        viewModel.voiceRecognitionManager.startListening()
-                    },
-                    onStopListening = {
-                        viewModel.voiceRecognitionManager.stopListening()
-                    },
-                    onQuickSave = { text ->
-                        viewModel.quickSaveVoiceResult(text)
-                    },
-                    onOpenInEditor = { text ->
-                        viewModel.openVoiceResultInEditor(text)
-                    },
-                    onDismiss = { viewModel.closeVoiceDialog() }
-                )
-            }
-
-            // Tag Manage Dialog
-            if (isTagManageOpen) {
-                TagManageDialog(
-                    allTags = allTags,
-                    selectedTags = selectedTags,
-                    onToggleTag = { tag -> viewModel.toggleTagFilter(tag) },
-                    onClearAllTags = { viewModel.clearTagFilters() },
-                    onDismiss = { viewModel.closeTagManageDialog() }
-                )
-            }
         }
     }
 }
+
+@SuppressLint("SetJavaScriptEnabled")
+@Composable
+fun WebAppView() {
+    var webViewInstance by remember { mutableStateOf<WebView?>(null) }
+
+    BackHandler(enabled = webViewInstance?.canGoBack() == true) {
+        webViewInstance?.goBack()
+    }
+
+    AndroidView(
+        modifier = Modifier.fillMaxSize(),
+        factory = { context ->
+            WebView(context).apply {
+                // Ensure software/hardware rendering layer compatibility
+                setLayerType(View.LAYER_TYPE_HARDWARE, null)
+
+                settings.apply {
+                    javaScriptEnabled = true
+                    domStorageEnabled = true
+                    databaseEnabled = true
+                    allowFileAccess = true
+                    allowContentAccess = true
+                    mediaPlaybackRequiresUserGesture = false
+                    cacheMode = WebSettings.LOAD_DEFAULT
+                    useWideViewPort = true
+                    loadWithOverviewMode = true
+                    mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+                }
+
+                webViewClient = object : WebViewClient() {
+                    override fun onPageFinished(view: WebView?, url: String?) {
+                        super.onPageFinished(view, url)
+                        Log.d("IdeaNoteWebView", "Page loaded successfully: $url")
+                    }
+                }
+
+                webChromeClient = object : WebChromeClient() {
+                    override fun onPermissionRequest(request: PermissionRequest?) {
+                        request?.grant(request.resources)
+                    }
+
+                    override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
+                        consoleMessage?.let {
+                            Log.d("IdeaNoteConsole", "[${it.messageLevel()}] ${it.message()} -- line ${it.lineNumber()} of ${it.sourceId()}")
+                        }
+                        return true
+                    }
+                }
+
+                loadUrl("file:///android_asset/index.html")
+                webViewInstance = this
+            }
+        },
+        update = {
+            webViewInstance = it
+        }
+    )
+}
+

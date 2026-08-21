@@ -319,8 +319,10 @@ function closeSupabaseModal() {
 
 async function handleSaveSupabaseEnv(e) {
   e.preventDefault();
-  const url = document.getElementById('supabaseUrlInput').value.trim();
-  const key = document.getElementById('supabaseKeyInput').value.trim();
+  const rawUrl = document.getElementById('supabaseUrlInput').value.trim();
+  const rawKey = document.getElementById('supabaseKeyInput').value.trim();
+  const url = normalizeSupabaseUrl(rawUrl);
+  const key = rawKey.trim();
 
   if (!url || !key) {
     showToast('VITE_SUPABASE_URL과 VITE_SUPABASE_ANON_KEY를 모두 입력해주세요.', 'error');
@@ -334,9 +336,7 @@ async function handleSaveSupabaseEnv(e) {
   closeSupabaseModal();
 
   // Sync immediately
-  if (supabaseClient) {
-    await syncWithSupabase();
-  }
+  await syncWithSupabase();
   render();
 }
 
